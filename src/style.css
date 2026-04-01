@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+
+@source inline('{sm:,md:,lg:,xl:,}grid-cols-{{1..12..1}}');
+@source inline('{sm:,md:,lg:,xl:,}grid-rows-{{1..12..1}}');
+@source inline('{sm:,md:,lg:,xl:,}col-start-{{1..12..1}}');
+@source inline('{sm:,md:,lg:,xl:,}row-start-{{1..12..1}}');
