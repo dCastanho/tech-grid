@@ -78,28 +78,30 @@ function snap(dropPos: Position) : Position | undefined {
 	
 	let snapPos
 
-	let gridPos = [0, 0]
+	let gridPos: [number, number] | null = null
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (s, cIndex) => {
 			if(isIn(dropPos, s)) {
 				snapPos = cornerOfEl(s)
 				gridPos = [rIndex, cIndex]
-			} 
+			}
 
-		})	
+		})
 	)
 
-	// 0 1 
+	// 0 1
 	// 1 1
 	const shouldPaint : number[][] = []
 
-	props!.shape!.forEach( (row, rIndex) => 
-		row.forEach( (col, cIndex) => {
-			if(col == 1) {
-				shouldPaint.push([gridPos[0] + rIndex, gridPos[1] + cIndex])
-			}
-		})
-	)
+	if (gridPos !== null) {
+		props!.shape!.forEach( (row, rIndex) =>
+			row.forEach( (col, cIndex) => {
+				if(col == 1) {
+					shouldPaint.push([gridPos![0] + rIndex, gridPos![1] + cIndex])
+				}
+			})
+		)
+	}
 
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (_, cIndex) => {
