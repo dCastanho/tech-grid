@@ -27,7 +27,8 @@ const style = defineModel({default : ''})
 const isPresed = ref(false)
 const offset = ref<Position | undefined>(undefined)
 
-function grab(e: MouseEvent) {
+function grab(e: PointerEvent) {
+	el.value!.setPointerCapture(e.pointerId)
 	isPresed.value = true
 	const p = cornerOfEl(el.value!)
 	offset.value = {
@@ -37,7 +38,8 @@ function grab(e: MouseEvent) {
 
 }
 
-function drop(e: MouseEvent) {
+function drop(e: PointerEvent) {
+	el.value!.releasePointerCapture(e.pointerId)
 	isPresed.value = false
 	
 	const currentPos = {
@@ -56,7 +58,7 @@ function drop(e: MouseEvent) {
 	}
 }
 
-function drag(e: MouseEvent) {
+function drag(e: PointerEvent) {
 	if(!isPresed.value || !offset.value)
 		return
 
