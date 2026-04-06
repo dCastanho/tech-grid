@@ -50,6 +50,7 @@ import { onMounted, provide, ref, useTemplateRef } from 'vue';
 import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
+import { GridSlot } from '../schema/grid';
 
 const tech = ref([[1]])
 const editing = ref(true)
@@ -70,9 +71,9 @@ function save() {
 
 function cancel() {
 	style.value = ''
-	grid.value.forEach((row: HTMLElement[]) =>
-		row.forEach((cell: HTMLElement) =>
-			cell.classList.remove('bg-pink-400')
+	grid.value.forEach( row =>
+		row.forEach( slot  =>
+			slot.html.classList.remove('bg-pink-400')
 		)
 	)
 	editing.value = true
@@ -80,15 +81,18 @@ function cancel() {
 
 const spaces = useTemplateRef('grid-space')	
 
-const grid = ref<any>([])
+const grid = ref<GridSlot[][]>([])
 
 onMounted( () => {	
-	const actualGrid : Array<Array<HTMLElement>> = []
+	const actualGrid : GridSlot[][] = []
 	spaces.value!.forEach( (s, i) => {
 		if(i % 4 == 0) {
 			actualGrid.push([])
 		}
-		actualGrid[actualGrid.length - 1].push(s)
+		actualGrid[actualGrid.length - 1].push({
+			technique: undefined,
+			html: s
+		})
 	})
 	grid.value = actualGrid	
 })

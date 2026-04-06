@@ -14,10 +14,11 @@
 
 <script setup lang="ts">
 import { inject, ref, useTemplateRef, ShallowRef } from 'vue'
+import { GridSlot } from '../schema/grid'
 
 interface Position {x : number, y : number}
 const el = useTemplateRef('draggable')
-const grid = inject<ShallowRef<HTMLElement[][]>>('grid')
+const grid = inject<ShallowRef<GridSlot[][]>>('grid')
 
 const props = defineProps({
 	shape : Array<Array<Number>>
@@ -83,8 +84,8 @@ function snap(dropPos: Position) : Position | undefined {
 	let gridPos: [number, number] | null = null
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (s, cIndex) => {
-			if(isIn(dropPos, s)) {
-				snapPos = cornerOfEl(s)
+			if(isIn(dropPos, s.html)) {
+				snapPos = cornerOfEl(s.html)
 				gridPos = [rIndex, cIndex]
 			}
 
@@ -108,9 +109,9 @@ function snap(dropPos: Position) : Position | undefined {
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (_, cIndex) => {
 			if( shouldPaint.some( pp => pp[0] == rIndex && pp[1] == cIndex) ){
-				grid?.value[rIndex][cIndex].classList.add('bg-pink-400')				
+				grid?.value[rIndex][cIndex].html.classList.add('bg-pink-400')				
 			} else {
-				grid?.value[rIndex][cIndex].classList.remove('bg-pink-400')				
+				grid?.value[rIndex][cIndex].html.classList.remove('bg-pink-400')				
 			}
 	}))
 
