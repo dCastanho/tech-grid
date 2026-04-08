@@ -19,6 +19,7 @@ import { GridSlot } from '../schema/grid'
 interface Position {x : number, y : number}
 const el = useTemplateRef('draggable')
 const grid = inject<ShallowRef<GridSlot[][]>>('grid')
+const dropPos = inject<ShallowRef<[number, number]>>('dropPos')
 
 const props = defineProps({
 	shape : Array<Array<Number>>
@@ -48,11 +49,12 @@ function drop(e: PointerEvent) {
 		y: e.clientY - offset.value!.y,
 	}
 	
-	const snapPos = snap(currentPos) 
-	if(snapPos) {
+	const snapPos = snap(currentPos)
+	if(snapPos[0]) {
+		dropPos!.value = snapPos[1]
 		style.value = `
-			left: ${snapPos.x}px;
-      		top: ${snapPos.y}px;
+			left: ${snapPos[0].x}px;
+      		top: ${snapPos[0].y}px;
 		`
 	} else {
 		style.value = ''
@@ -77,14 +79,51 @@ function drag(e: PointerEvent) {
     `
 }
 
-function snap(dropPos: Position) : Position | undefined {
+
+/**
+ 
+[][][]
+[][][]
+[][][]
+
+
+**/
+
+function canPlaceHere(topLeft: [number, number]) {
+
+	if(!props.shape) {
+		return false
+	}
+
+	console.log(topLeft)
+
+	for (let rIndex = 0; rIndex < props.shape.length; rIndex++) {
+		console.log(rIndex)
+		for (let cIndex = 0; cIndex < props.shape[rIndex].length; cIndex++) {
+			
+			if( (grid?.value[topLeft[0] + rIndex][ topLeft[1] + cIndex] == undefined ||
+				grid?.value[topLeft[0] + rIndex][ topLeft[1] + cIndex]?.technique != undefined )
+				&& props.shape[rIndex][cIndex] == 1
+			) {
+				return false
+			}
+		}
+	}
+
+	return true
+
+
+
+}
+
+function snap(dropPos: Position) : [Position | undefined, [number, number]] {
 	
 	let snapPos
 
 	let gridPos: [number, number] | null = null
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (s, cIndex) => {
-			if(isIn(dropPos, s.html)) {
+			if(isIn(dropPos, s.html) && canPlaceHere([rIndex, cIndex])) {
 				snapPos = cornerOfEl(s.html)
 				gridPos = [rIndex, cIndex]
 			}
@@ -117,14 +156,13 @@ function snap(dropPos: Position) : Position | undefined {
 
 	
 
-	return snapPos
+	return [snapPos!, gridPos!]
 }
 
 
 function isIn(pos: Position, el: Element){
 	const extra = 4
 	const rect = el.getBoundingClientRect()
-	console.log(rect.left, pos)
 	return (
 		rect.left - extra <= pos.x && rect.left + rect.width  + extra >= pos.x &&
 		rect.top  - extra <= pos.y && rect.top  + rect.height + extra >= pos.y

@@ -54,7 +54,7 @@ import { GridSlot } from '../schema/grid';
 
 const tech = ref([[1]])
 const editing = ref(true)
-
+const dropPos = ref<[number,number] | undefined>()
 const style = ref('')
 
 const saved = ref<any>([])
@@ -63,6 +63,19 @@ function save() {
 	saved.value.push({
 		tech : tech.value,
 		style: style.value
+	})
+
+	tech.value.forEach ((row, rIndex) => {
+		row.forEach((v, cIndex) => {
+			if(v == 1) {
+				console.log(dropPos.value)
+				grid.value[rIndex + dropPos.value[0]][cIndex + dropPos.value[1]].technique =  {
+					rows: tech.value,
+					color: "",
+					name: ""
+				}
+			}
+		})
 	})
 	tech.value = [[1]]
 	editing.value = true
@@ -98,6 +111,7 @@ onMounted( () => {
 })
 
 provide('grid', grid)
+provide('dropPos', dropPos)
 </script>
 
 
