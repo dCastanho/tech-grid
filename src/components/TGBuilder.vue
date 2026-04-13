@@ -2,7 +2,9 @@
 	<div :class="`grid grid-cols-${nCols} grid-rows-${nRows} gap-2 w-fit`">
 		<template v-for="r, rIndex in tech">
 			<template v-for="col, cIndex in r">
-				<div :class="`relative z-10 w-16 h-16 bg-amber-400 row-start-${rIndex+1} col-start-${cIndex+1}`" v-if="col > 0">
+				<div :class="`relative z-10 bg-amber-400 row-start-${rIndex+1} col-start-${cIndex+1}`" v-if="col > 0"
+					:style="cellStyle">
+
 					<TGMinus class="absolute top-1/2 left-1/2 -translate-1/2" v-if="tech.length != 1 || tech[0].length != 1" @click="remove(rIndex, cIndex)" />
 					<TGPlus v-if="!tech[rIndex-1]?.[cIndex]" position="top" @click="add(rIndex-1, cIndex)"/>
 					<TGPlus v-if="!tech[rIndex]?.[cIndex+1]" position="right" @click="add(rIndex, cIndex+1)" />
@@ -19,7 +21,14 @@
 import { computed } from 'vue'
 import TGPlus from './TGPlus.vue';
 import TGMinus from './TGMinus.vue';
+import { CELL_SIZE } from '../utils/grid';
 
+
+
+const cellStyle = {
+	width: `${CELL_SIZE}px`,
+	height: `${CELL_SIZE}px`,
+}
 
 const tech = defineModel({default : [[1]] })
 

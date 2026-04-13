@@ -4,12 +4,12 @@
 	></TGTechnique>
 	<div class="grid grid-cols-1 md:grid-cols-2 h-screen">
 		<div class="flex justify-center items-center">
-			<div :class="`grid grid-cols-${size} grid-rows-${size} w-fit gap-2`">
+			<div ref="grid-container" :style="gridStyle">
 				<template v-for="(_, r) in size" :key="r">
 					<template v-for="(_, c) in size" :key="c">
 						<div
-							class="js-drop-zone w-16 h-16 border border-gray-400"
-							ref="grid-space"
+							class="js-drop-zone border border-gray-400"
+							:style="cellStyle"
 							:class="{ 'bg-pink-400': highlightedCells.has(cellKey(r, c)) }"
 						></div>
 					</template>
@@ -48,16 +48,26 @@
 
 <script setup lang="ts">
 
-const size = 4
-
-import { onMounted, provide, ref, useTemplateRef } from 'vue';
+import { provide, ref, useTemplateRef } from 'vue';
 import type { Ref } from 'vue';
 import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
-import { GridSlot } from '../schema/grid';
 import { GridPosition } from '../schema/gridPosition';
 import { cellKey } from '../utils/cellKey';
+import { SIZE as size, CELL_SIZE, GAP, createGrid } from '../utils/grid';
+
+const gridStyle = {
+	display: 'grid',
+	gridTemplateColumns: `repeat(${size}, ${CELL_SIZE}px)`,
+	gridTemplateRows: `repeat(${size}, ${CELL_SIZE}px)`,
+	gap: `${GAP}px`,
+}
+
+const cellStyle = {
+	width: `${CELL_SIZE}px`,
+	height: `${CELL_SIZE}px`,
+}
 
 const tech = ref([[1]])
 const editing = ref(true)
@@ -68,7 +78,7 @@ const saved = ref<any>([])
 
 const highlightedCells = ref<Set<string>>(new Set())
 
-const gridEls = ref<HTMLElement[][]>([])
+const gridContainer = useTemplateRef('grid-container')
 
 function save() {
 	saved.value.push({
@@ -101,27 +111,10 @@ function cancel() {
 	editing.value = true
 }
 
-const spaces = useTemplateRef('grid-space')	
-
-const grid = ref<GridSlot[][]>([])
-
-onMounted( () => {
-	const actualGrid : GridSlot[][] = []
-	const actualEls : HTMLElement[][] = []
-	spaces.value!.forEach( (s, i) => {
-		if(i % 4 == 0) {
-			actualGrid.push([])
-			actualEls.push([])
-		}
-		actualGrid[actualGrid.length - 1].push({ technique: undefined })
-		actualEls[actualEls.length - 1].push(s)
-	})
-	grid.value = actualGrid
-	gridEls.value = actualEls
-})
+const grid = ref(createGrid())
 
 provide('grid', grid)
-provide('gridEls', gridEls)
+provide('gridContainer', gridContainer)
 provide('highlightedCells', highlightedCells as Ref<Set<string>>)
 provide('dropPos', dropGridPos)
 </script>
