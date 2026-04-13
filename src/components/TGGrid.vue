@@ -5,9 +5,13 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 h-screen">
 		<div class="flex justify-center items-center">
 			<div :class="`grid grid-cols-${size} grid-rows-${size} w-fit gap-2`">
-				<template v-for="_ in size">
-					<template v-for="_ in size">				
-						<div class="js-drop-zone w-16 h-16 border border-gray-400" ref="grid-space"></div>
+				<template v-for="(_, r) in size" :key="r">
+					<template v-for="(_, c) in size" :key="c">
+						<div
+							class="js-drop-zone w-16 h-16 border border-gray-400"
+							ref="grid-space"
+							:class="{ 'bg-pink-400': highlightedCells.has(cellKey(r, c)) }"
+						></div>
 					</template>
 				</template>
 			</div>	
@@ -47,11 +51,13 @@
 const size = 4
 
 import { onMounted, provide, ref, useTemplateRef } from 'vue';
+import type { Ref } from 'vue';
 import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
 import { GridSlot } from '../schema/grid';
 import { GridPosition } from '../schema/gridPosition';
+import { cellKey } from '../utils/cellKey';
 
 const tech = ref([[1]])
 const editing = ref(true)
@@ -59,6 +65,10 @@ const dropGridPos = ref<GridPosition | undefined>()
 const style = ref('')
 
 const saved = ref<any>([])
+
+const highlightedCells = ref<Set<string>>(new Set())
+
+const gridEls = ref<HTMLElement[][]>([])
 
 function save() {
 	saved.value.push({
@@ -87,11 +97,7 @@ function save() {
 
 function cancel() {
 	style.value = ''
-	grid.value.forEach( row =>
-		row.forEach( slot  =>
-			slot.html.classList.remove('bg-pink-400')
-		)
-	)
+	highlightedCells.value = new Set()
 	editing.value = true
 }
 
@@ -99,21 +105,24 @@ const spaces = useTemplateRef('grid-space')
 
 const grid = ref<GridSlot[][]>([])
 
-onMounted( () => {	
+onMounted( () => {
 	const actualGrid : GridSlot[][] = []
+	const actualEls : HTMLElement[][] = []
 	spaces.value!.forEach( (s, i) => {
 		if(i % 4 == 0) {
 			actualGrid.push([])
+			actualEls.push([])
 		}
-		actualGrid[actualGrid.length - 1].push({
-			technique: undefined,
-			html: s
-		})
+		actualGrid[actualGrid.length - 1].push({ technique: undefined })
+		actualEls[actualEls.length - 1].push(s)
 	})
-	grid.value = actualGrid	
+	grid.value = actualGrid
+	gridEls.value = actualEls
 })
 
 provide('grid', grid)
+provide('gridEls', gridEls)
+provide('highlightedCells', highlightedCells as Ref<Set<string>>)
 provide('dropPos', dropGridPos)
 </script>
 

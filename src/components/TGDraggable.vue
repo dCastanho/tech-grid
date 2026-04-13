@@ -14,12 +14,16 @@
 
 <script setup lang="ts">
 import { inject, ref, useTemplateRef, ShallowRef } from 'vue'
+import type { Ref } from 'vue'
 import { GridSlot } from '../schema/grid'
 import { Position } from '../schema/position';
 import { GridPosition } from '../schema/gridPosition';
+import { cellKey } from '../utils/cellKey';
 
 const el = useTemplateRef('draggable')
 const grid = inject<ShallowRef<GridSlot[][]>>('grid')
+const gridEls = inject<Ref<HTMLElement[][]>>('gridEls')
+const highlightedCells = inject<Ref<Set<string>>>('highlightedCells')
 const gridDropPos = inject<ShallowRef<GridPosition | undefined>>('dropPos')
 
 const props = defineProps({
@@ -89,19 +93,16 @@ function drag(e: PointerEvent) {
 }
 
 function canPlaceHere(topLeft: GridPosition) {
-	if(!props.shape) {
-		return false
-	}
+	if (!props.shape) return false
 
 	for (let rIndex = 0; rIndex < props.shape.length; rIndex++) {
-		for (let cIndex = 0; cIndex < props.shape[rIndex].length; cIndex++) {			
+		for (let cIndex = 0; cIndex < props.shape[rIndex].length; cIndex++) {
+			if (props.shape[rIndex][cIndex] !== 1) continue
 
-			const gridSquare = grid?.value[topLeft.row + rIndex][ topLeft.col + cIndex]
-			const squareIsFilled = gridSquare == undefined || gridSquare.technique != undefined
+			const row = grid?.value[topLeft.row + rIndex]
+			const slot = row?.[topLeft.col + cIndex]
 
-			if( squareIsFilled && props.shape[rIndex][cIndex] == 1 ) {
-				return false
-			}
+			if (!slot || slot.technique !== undefined) return false
 		}
 	}
 
@@ -110,20 +111,16 @@ function canPlaceHere(topLeft: GridPosition) {
 
 
 function clearGrid() {
-	grid!.value.forEach( row =>
-		row.forEach( slot  =>
-			slot.html.classList.remove('bg-pink-400')
-		)
-	)
+	highlightedCells!.value = new Set()
 }
 
 function toGridPosition(pos: Position) : GridPosition | undefined {
 	let gridPosition = undefined
-	
-	grid!.value!.forEach ( (row, rIndex) =>
-		row.forEach ( (s, cIndex) => {
-			if( isIn(pos, s.html)) {
-				gridPosition = {row: rIndex, col: cIndex }
+
+	gridEls!.value.forEach((row, rIndex) =>
+		row.forEach((el, cIndex) => {
+			if (isIn(pos, el)) {
+				gridPosition = { row: rIndex, col: cIndex }
 			}
 		})
 	)
@@ -132,48 +129,26 @@ function toGridPosition(pos: Position) : GridPosition | undefined {
 }
 
 function paintGrid(topLeft: GridPosition | undefined) {
-	if(!topLeft)
-		return 
+	if (!topLeft) return
 
-	const shouldPaint : GridPosition[] = []
-
-	props!.shape!.forEach( (row, rIndex) =>
-		row.forEach( (col, cIndex) => {
-			if(col == 1) {
-				shouldPaint.push({
-					row: topLeft.row + rIndex,
-					col: topLeft.col + cIndex
-				})
+	const next = new Set<string>()
+	props.shape!.forEach((row, rIndex) =>
+		row.forEach((cell, cIndex) => {
+			if (cell == 1) {
+				next.add(cellKey(topLeft.row + rIndex, topLeft.col + cIndex))
 			}
 		})
 	)
-
-	grid!.value!.forEach ( (row, rIndex) =>
-		row.forEach ( (_, cIndex) => {
-			const shapeHovers = shouldPaint.some( pp => pp.row == rIndex && pp.col == cIndex)
-			const gridHTML = grid?.value[rIndex][cIndex].html!
-			if(  shapeHovers ){
-				gridHTML.classList.add('bg-pink-400')				
-			} else {
-				gridHTML.classList.remove('bg-pink-400')				
-			}
-	}))
-
+	highlightedCells!.value = next
 }
 
 function snap(dropPos: Position) : Position | undefined {
-	
-	const gridPos  = toGridPosition(dropPos)
+	const gridPos = toGridPosition(dropPos)
 
-	if( !gridPos || !canPlaceHere(gridPos) )
-		return undefined
+	if (!gridPos || !canPlaceHere(gridPos)) return undefined
 
-	const gridSlot = grid?.value[gridPos.row][gridPos.col] 	
-
-	if(gridSlot?.html)
-		return cornerOfEl(gridSlot?.html)
-	else 
-		return undefined
+	const el = gridEls?.value[gridPos.row][gridPos.col]
+	return el ? cornerOfEl(el) : undefined
 }
 
 
