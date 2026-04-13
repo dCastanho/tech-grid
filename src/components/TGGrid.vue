@@ -17,27 +17,10 @@
 				</template>
 			</div>	
 		</div>
-		<div class="flex flex-col items-center justify-center gap-y-12">
-			<div class="h-24 w-full flex items-center justify-center">
-				<div class="flex flex-row gap-4">
-					<template v-if="editing">
-						<button class="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button" @click="editing = !editing">
-							Done
-						</button>
-					</template>
-					<template v-else>
-						<button class="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button" @click="save">
-							Save
-						</button>
-						<button class="rounded-md bg-slate-800 py-2 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none ml-2" type="button" @click="cancel">
-							Cancel
-						</button>
-					</template>
-				</div>
-			</div>
-			<div class="flex h-96 items-center justify-center">
-				<TGBuilder v-if="editing"  v-model="tech"></TGBuilder>
-				<TGDraggable
+		<div class="flex items-center justify-center px-16">
+				<div class="grow flex items-center justify-center">
+					<TGBuilder v-if="editing"  v-model="tech"></TGBuilder>
+					<TGDraggable
 					v-model="style"
 					v-else
 					:shape="tech"
@@ -45,13 +28,29 @@
 					:grid-container="gridContainer"
 					@placed="onPlaced"
 					@highlighted="onHighlighted"
-				>
-					<TGTechnique
-					:rows="tech"
-					></TGTechnique>
-				</TGDraggable> 
+					>
+						<TGTechnique
+						:rows="tech"
+						></TGTechnique>
+					</TGDraggable> 
+				</div>
+				<div class="w-32 flex flex-col gap-4 ">
+					<template v-if="editing">
+						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="editing = !editing">
+							<Hand></Hand>
+						</TGButton>
+					</template>
+					<template v-else>
+						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="save">
+							<Check></Check>
+						</TGButton>
+						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="cancel">
+							<Cross></Cross>
+						</TGButton>
+					</template>
+				</div>
 			</div>
-		</div>
+				
 	</div>
 </template>
 
@@ -64,6 +63,10 @@ import TGBuilder from './TGBuilder.vue';
 import { GridPosition } from '../schema/gridPosition';
 import { cellKey } from '../utils/cellKey';
 import { SIZE as size, CELL_SIZE, GAP, createGrid } from '../utils/grid';
+import Hand from './icons/Hand.vue';
+import Check from './icons/Check.vue';
+import Cross from './icons/Cross.vue';
+import TGButton from './TGButton.vue';
 
 const gridStyle = {
 	display: 'grid',

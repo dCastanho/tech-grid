@@ -19,8 +19,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import TGPlus from './TGPlus.vue';
-import TGMinus from './TGMinus.vue';
+import TGPlus from './icons/Plus.vue';
+import TGMinus from './icons/Minus.vue';
 import { CELL_SIZE } from '../utils/grid';
 import { useShapeEditor } from '../composables/useShapeEditor';
 
