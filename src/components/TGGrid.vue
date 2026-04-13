@@ -1,7 +1,4 @@
 <template>
-	<TGTechnique v-for="s in saved"
-		:rows="s.tech":style="s.style" class="absolute"
-	></TGTechnique>
 	<div class="grid grid-cols-1 md:grid-cols-2 h-screen">
 		<div class="flex justify-center items-center">
 			<div ref="grid-container" :style="gridStyle">
@@ -10,7 +7,11 @@
 						<div
 							class="js-drop-zone border border-gray-400"
 							:style="cellStyle"
-							:class="{ 'bg-pink-400': highlightedCells.has(cellKey(r, c)) }"
+							:class="`
+								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}
+								${grid[r][c].technique?.class}
+								`"
+							
 						></div>
 					</template>
 				</template>
@@ -81,18 +82,11 @@ const editing = ref(true)
 const dropGridPos = ref<GridPosition | undefined>()
 const style = ref('')
 
-const saved = ref<any>([])
-
 const highlightedCells = ref<Set<string>>(new Set())
 
 const gridContainer = useTemplateRef('grid-container')
 
 function save() {
-	saved.value.push({
-		tech : tech.value,
-		style: style.value
-	})
-
 	tech.value.forEach ((row, rIndex) => {
 		row.forEach((v, cIndex) => {
 			if(v == 1 && dropGridPos.value) {
@@ -100,7 +94,7 @@ function save() {
 				const slot = grid.value[rIndex + dropGridPos.value.row][cIndex + dropGridPos.value.col]
 				slot.technique =  {
 					rows: tech.value,
-					color: "",
+					class: "bg-amber-500",
 					name: ""
 				}
 			

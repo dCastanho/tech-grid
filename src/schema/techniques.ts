@@ -1,5 +1,5 @@
 export interface Technique {
 	rows: number[][],
-	color: string,
+	class: string,
 	name: string
 }
