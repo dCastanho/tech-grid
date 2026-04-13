@@ -51,10 +51,11 @@ import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
 import { GridSlot } from '../schema/grid';
+import { GridPosition } from '../schema/gridPosition';
 
 const tech = ref([[1]])
 const editing = ref(true)
-const dropPos = ref<[number,number] | undefined>()
+const dropGridPos = ref<GridPosition | undefined>()
 const style = ref('')
 
 const saved = ref<any>([])
@@ -67,13 +68,15 @@ function save() {
 
 	tech.value.forEach ((row, rIndex) => {
 		row.forEach((v, cIndex) => {
-			if(v == 1) {
-				console.log(dropPos.value)
-				grid.value[rIndex + dropPos.value[0]][cIndex + dropPos.value[1]].technique =  {
+			if(v == 1 && dropGridPos.value) {
+
+				const slot = grid.value[rIndex + dropGridPos.value.row][cIndex + dropGridPos.value.col]
+				slot.technique =  {
 					rows: tech.value,
 					color: "",
 					name: ""
 				}
+			
 			}
 		})
 	})
@@ -111,7 +114,7 @@ onMounted( () => {
 })
 
 provide('grid', grid)
-provide('dropPos', dropPos)
+provide('dropPos', dropGridPos)
 </script>
 
 

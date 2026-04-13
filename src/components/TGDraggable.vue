@@ -15,11 +15,12 @@
 <script setup lang="ts">
 import { inject, ref, useTemplateRef, ShallowRef } from 'vue'
 import { GridSlot } from '../schema/grid'
+import { Position } from '../schema/position';
+import { GridPosition } from '../schema/gridPosition';
 
-interface Position {x : number, y : number}
 const el = useTemplateRef('draggable')
 const grid = inject<ShallowRef<GridSlot[][]>>('grid')
-const dropPos = inject<ShallowRef<[number, number]>>('dropPos')
+const gridDropPos = inject<ShallowRef<GridPosition | undefined>>('dropPos')
 
 const props = defineProps({
 	shape : Array<Array<Number>>
@@ -50,11 +51,14 @@ function drop(e: PointerEvent) {
 	}
 	
 	const snapPos = snap(currentPos)
-	if(snapPos[0]) {
-		dropPos!.value = snapPos[1]
+
+	if(snapPos) {
+
+		gridDropPos!.value = toGridPosition(snapPos)
+
 		style.value = `
-			left: ${snapPos[0].x}px;
-      		top: ${snapPos[0].y}px;
+			left: ${snapPos.x}px;
+      		top: ${snapPos.y}px;
 		`
 	} else {
 		style.value = ''
@@ -71,7 +75,12 @@ function drag(e: PointerEvent) {
 		y: e.clientY - offset.value.y
 	}
 	
-	snap(finalPos)
+	const gridPos = toGridPosition(finalPos)
+	if(gridPos && canPlaceHere(gridPos)) {
+		paintGrid(gridPos)
+	} else {
+		clearGrid()
+	}
 
   	style.value = `
       left: ${finalPos.x}px;
@@ -79,84 +88,92 @@ function drag(e: PointerEvent) {
     `
 }
 
-
-/**
- 
-[][][]
-[][][]
-[][][]
-
-
-**/
-
-function canPlaceHere(topLeft: [number, number]) {
-
+function canPlaceHere(topLeft: GridPosition) {
 	if(!props.shape) {
 		return false
 	}
 
-	console.log(topLeft)
-
 	for (let rIndex = 0; rIndex < props.shape.length; rIndex++) {
-		console.log(rIndex)
-		for (let cIndex = 0; cIndex < props.shape[rIndex].length; cIndex++) {
-			
-			if( (grid?.value[topLeft[0] + rIndex][ topLeft[1] + cIndex] == undefined ||
-				grid?.value[topLeft[0] + rIndex][ topLeft[1] + cIndex]?.technique != undefined )
-				&& props.shape[rIndex][cIndex] == 1
-			) {
+		for (let cIndex = 0; cIndex < props.shape[rIndex].length; cIndex++) {			
+
+			const gridSquare = grid?.value[topLeft.row + rIndex][ topLeft.col + cIndex]
+			const squareIsFilled = gridSquare == undefined || gridSquare.technique != undefined
+
+			if( squareIsFilled && props.shape[rIndex][cIndex] == 1 ) {
 				return false
 			}
 		}
 	}
 
 	return true
-
-
-
 }
 
-function snap(dropPos: Position) : [Position | undefined, [number, number]] {
-	
-	let snapPos
 
-	let gridPos: [number, number] | null = null
+function clearGrid() {
+	grid!.value.forEach( row =>
+		row.forEach( slot  =>
+			slot.html.classList.remove('bg-pink-400')
+		)
+	)
+}
+
+function toGridPosition(pos: Position) : GridPosition | undefined {
+	let gridPosition = undefined
+	
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (s, cIndex) => {
-			if(isIn(dropPos, s.html) && canPlaceHere([rIndex, cIndex])) {
-				snapPos = cornerOfEl(s.html)
-				gridPos = [rIndex, cIndex]
+			if( isIn(pos, s.html)) {
+				gridPosition = {row: rIndex, col: cIndex }
 			}
-
 		})
 	)
 
-	// 0 1
-	// 1 1
-	const shouldPaint : number[][] = []
+	return gridPosition
+}
 
-	if (gridPos !== null) {
-		props!.shape!.forEach( (row, rIndex) =>
-			row.forEach( (col, cIndex) => {
-				if(col == 1) {
-					shouldPaint.push([gridPos![0] + rIndex, gridPos![1] + cIndex])
-				}
-			})
-		)
-	}
+function paintGrid(topLeft: GridPosition | undefined) {
+	if(!topLeft)
+		return 
+
+	const shouldPaint : GridPosition[] = []
+
+	props!.shape!.forEach( (row, rIndex) =>
+		row.forEach( (col, cIndex) => {
+			if(col == 1) {
+				shouldPaint.push({
+					row: topLeft.row + rIndex,
+					col: topLeft.col + cIndex
+				})
+			}
+		})
+	)
 
 	grid!.value!.forEach ( (row, rIndex) =>
 		row.forEach ( (_, cIndex) => {
-			if( shouldPaint.some( pp => pp[0] == rIndex && pp[1] == cIndex) ){
-				grid?.value[rIndex][cIndex].html.classList.add('bg-pink-400')				
+			const shapeHovers = shouldPaint.some( pp => pp.row == rIndex && pp.col == cIndex)
+			const gridHTML = grid?.value[rIndex][cIndex].html!
+			if(  shapeHovers ){
+				gridHTML.classList.add('bg-pink-400')				
 			} else {
-				grid?.value[rIndex][cIndex].html.classList.remove('bg-pink-400')				
+				gridHTML.classList.remove('bg-pink-400')				
 			}
 	}))
 
-	
+}
 
-	return [snapPos!, gridPos!]
+function snap(dropPos: Position) : Position | undefined {
+	
+	const gridPos  = toGridPosition(dropPos)
+
+	if( !gridPos || !canPlaceHere(gridPos) )
+		return undefined
+
+	const gridSlot = grid?.value[gridPos.row][gridPos.col] 	
+
+	if(gridSlot?.html)
+		return cornerOfEl(gridSlot?.html)
+	else 
+		return undefined
 }
 
 
