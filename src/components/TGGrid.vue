@@ -36,7 +36,15 @@
 			</div>
 			<div class="flex h-96 items-center justify-center">
 				<TGBuilder v-if="editing"  v-model="tech"></TGBuilder>
-				<TGDraggable v-model="style" v-else :shape="tech">
+				<TGDraggable
+					v-model="style"
+					v-else
+					:shape="tech"
+					:grid="grid"
+					:grid-container="gridContainer"
+					@placed="onPlaced"
+					@highlighted="onHighlighted"
+				>
 					<TGTechnique
 					:rows="tech"
 					></TGTechnique>
@@ -48,8 +56,7 @@
 
 <script setup lang="ts">
 
-import { provide, ref, useTemplateRef } from 'vue';
-import type { Ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
@@ -105,6 +112,14 @@ function save() {
 	style.value = ''
 }
 
+function onPlaced(pos: GridPosition) {
+	dropGridPos.value = pos
+}
+
+function onHighlighted(cells: Set<string>) {
+	highlightedCells.value = cells
+}
+
 function cancel() {
 	style.value = ''
 	highlightedCells.value = new Set()
@@ -113,10 +128,6 @@ function cancel() {
 
 const grid = ref(createGrid())
 
-provide('grid', grid)
-provide('gridContainer', gridContainer)
-provide('highlightedCells', highlightedCells as Ref<Set<string>>)
-provide('dropPos', dropGridPos)
 </script>
 
 
