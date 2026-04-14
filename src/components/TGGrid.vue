@@ -1,6 +1,6 @@
 <template>
-	<Modal v-if="showChars">
-		<TGCharacterSelection @selected="c => selectedName(c)" ></TGCharacterSelection>
+	<Modal v-model="showChars">
+		<TGCharacterSelection :selected="tech.name" @selected="selectedName" />
 	</Modal>
 	<div class="grid grid-cols-1 md:grid-cols-2 h-full">
 		<div class="flex justify-center items-center">
@@ -116,24 +116,26 @@ function selectedName(character : string) {
 }
 
 function save() {
-	tech.value.rows.forEach ((row, rIndex) => {
-		row.forEach((v, cIndex) => {
-			if(v == 1 && dropGridPos.value) {
+	if (!dropGridPos.value) return
 
-				const slot = grid.value[rIndex + dropGridPos.value.row][cIndex + dropGridPos.value.col]
-				tech.value.class = 'bg-amber-500'
-				slot.technique = tech.value
-			
+	// Snapshot before reset: freeze the shape, name, and class into one
+	// immutable object so every slot gets the same stable reference and
+	// future mutations to `tech` cannot bleed into already-placed tiles.
+	const snapshot: Technique = {
+		name: tech.value.name,
+		class: 'bg-amber-500',
+		rows: tech.value.rows.map(r => [...r]),
+	}
+
+	snapshot.rows.forEach((row, rIndex) => {
+		row.forEach((v, cIndex) => {
+			if (v === 1) {
+				grid.value[rIndex + dropGridPos.value!.row][cIndex + dropGridPos.value!.col].technique = snapshot
 			}
 		})
 	})
 
-	tech.value = {
-		name: "",
-		rows:[[1]],
-		class: ""
-	}
-	
+	tech.value = { name: "", rows: [[1]], class: "" }
 	editing.value = true
 	style.value = ''
 }
