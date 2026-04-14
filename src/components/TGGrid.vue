@@ -7,16 +7,16 @@
 			<div ref="grid-container" :style="gridStyle">
 				<template v-for="(_, r) in size" :key="r">
 					<template v-for="(_, c) in size" :key="c">
-						<div
-							class="js-drop-zone border border-gray-400"
+						<div v-if="!grid[r][c].technique"
+							class="border border-gray-400"
 							:style="cellStyle"
 							:class="`
 								flex items-center justify-center text-xl
-								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}
-								${grid[r][c].technique?.class}
-								`"
-							
-						>{{ grid[r][c].technique?.name}}</div>
+								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}`"
+						></div>
+						<TGBlock v-else :style="cellStyle">
+							{{ grid[r][c].technique.name }}
+						</TGBlock>
 					</template>
 				</template>
 			</div>	
@@ -82,6 +82,7 @@ import Swatch from './icons/Swatch.vue';
 import Modal from './Modal.vue';
 import TGCharacterSelection from './TGCharacterSelection.vue';
 import { Technique } from '../schema/techniques';
+import TGBlock from './TGBlock.vue';
 
 const gridStyle = {
 	display: 'grid',

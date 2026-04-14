@@ -2,15 +2,15 @@
 	<div :class="`grid grid-cols-${nCols} grid-rows-${nRows} gap-2 w-fit`">
 		<template v-for="r, rIndex in tech.rows">
 			<template v-for="col, cIndex in r">
-				<div :class="`relative z-10 bg-amber-400 row-start-${rIndex+1} col-start-${cIndex+1} flex items-center justify-center text-lg text-black`" v-if="col > 0"
+				<TGBlock :class="`row-start-${rIndex+1} col-start-${cIndex+1}`" v-if="col > 0"
 					:style="cellStyle">
 					{{ tech.name }}
-					<TGMinus class="absolute top-1/5 text-xs w-4 left-1/5 -translate-1/2" v-if="tech.rows.length != 1 || tech.rows[0].length != 1" @click="remove(rIndex, cIndex)" />
+					<TGMinus class="z-50 absolute top-1/5 text-xs w-4 left-1/5 -translate-1/2" v-if="tech.rows.length != 1 || tech.rows[0].length != 1" @click="remove(rIndex, cIndex)" />
 					<TGPlus v-if="!tech.rows[rIndex-1]?.[cIndex]" position="top" @click="add(rIndex-1, cIndex)"/>
 					<TGPlus v-if="!tech.rows[rIndex]?.[cIndex+1]" position="right" @click="add(rIndex, cIndex+1)" />
 					<TGPlus v-if="!tech.rows[rIndex]?.[cIndex-1]" position="left" @click="add(rIndex, cIndex-1)"/>
 					<TGPlus v-if="!tech.rows[rIndex+1]?.[cIndex]" position="bottom" @click="add(rIndex+1, cIndex)"/>
-				</div>
+				</TGBlock>
 			</template>
 		</template>
 	</div>
@@ -24,6 +24,7 @@ import TGMinus from './icons/Minus.vue';
 import { CELL_SIZE } from '../utils/grid';
 import { useShapeEditor } from '../composables/useShapeEditor';
 import { Technique } from '../schema/techniques';
+import TGBlock from './TGBlock.vue';
 
 
 
