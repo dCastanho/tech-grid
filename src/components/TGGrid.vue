@@ -1,5 +1,8 @@
 <template>
-	<div class="grid grid-cols-1 md:grid-cols-2 h-screen">
+	<Modal v-if="showChars">
+		<TGCharacterSelection @selected="c => selectedName(c)" ></TGCharacterSelection>
+	</Modal>
+	<div class="grid grid-cols-1 md:grid-cols-2 h-full">
 		<div class="flex justify-center items-center">
 			<div ref="grid-container" :style="gridStyle">
 				<template v-for="(_, r) in size" :key="r">
@@ -8,45 +11,53 @@
 							class="js-drop-zone border border-gray-400"
 							:style="cellStyle"
 							:class="`
+								flex items-center justify-center text-xl
 								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}
 								${grid[r][c].technique?.class}
 								`"
 							
-						></div>
+						>{{ grid[r][c].technique?.name}}</div>
 					</template>
 				</template>
 			</div>	
 		</div>
 		<div class="flex items-center justify-center px-16">
 				<div class="grow flex items-center justify-center">
-					<TGBuilder v-if="editing"  v-model="tech"></TGBuilder>
+					<TGBuilder v-if="editing" v-model="tech"></TGBuilder>
 					<TGDraggable
 					v-model="style"
 					v-else
-					:shape="tech"
+					:shape="tech.rows"
 					:grid="grid"
 					:grid-container="gridContainer"
 					@placed="onPlaced"
 					@highlighted="onHighlighted"
 					>
 						<TGTechnique
-						:rows="tech"
+						:tech="tech"
 						></TGTechnique>
 					</TGDraggable> 
 				</div>
 				<div class="w-32 flex flex-col gap-4 ">
 					<template v-if="editing">
-						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="editing = !editing">
+						<TGButton  type="button" @click="editing = !editing">
 							<Hand></Hand>
+						</TGButton>
+						<TGButton class="text-xl" type="button" @click="showChars = true">
+							技
+						</TGButton>
+						<TGButton  type="button" @click="cancel">
+							<Swatch></Swatch>
 						</TGButton>
 					</template>
 					<template v-else>
-						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="save">
+						<TGButton  type="button" @click="save">
 							<Check></Check>
 						</TGButton>
-						<TGButton class="w-12 size-lg  rounded-full flex items-center justify-center bg-slate-800 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 py-2.5 disabled:shadow-none ml-2" type="button" @click="cancel">
+						<TGButton  type="button" @click="cancel">
 							<Cross></Cross>
 						</TGButton>
+						
 					</template>
 				</div>
 			</div>
@@ -67,6 +78,10 @@ import Hand from './icons/Hand.vue';
 import Check from './icons/Check.vue';
 import Cross from './icons/Cross.vue';
 import TGButton from './TGButton.vue';
+import Swatch from './icons/Swatch.vue';
+import Modal from './Modal.vue';
+import TGCharacterSelection from './TGCharacterSelection.vue';
+import { Technique } from '../schema/techniques';
 
 const gridStyle = {
 	display: 'grid',
@@ -80,7 +95,13 @@ const cellStyle = {
 	height: `${CELL_SIZE}px`,
 }
 
-const tech = ref([[1]])
+const showChars = ref(false)
+const tech = ref<Technique>({
+	name: "",
+	rows:[[1]],
+	class: ""
+})
+
 const editing = ref(true)
 const dropGridPos = ref<GridPosition | undefined>()
 const style = ref('')
@@ -89,22 +110,30 @@ const highlightedCells = ref<Set<string>>(new Set())
 
 const gridContainer = useTemplateRef('grid-container')
 
+function selectedName(character : string) {
+	tech.value.name = character
+	showChars.value = false
+}
+
 function save() {
-	tech.value.forEach ((row, rIndex) => {
+	tech.value.rows.forEach ((row, rIndex) => {
 		row.forEach((v, cIndex) => {
 			if(v == 1 && dropGridPos.value) {
 
 				const slot = grid.value[rIndex + dropGridPos.value.row][cIndex + dropGridPos.value.col]
-				slot.technique =  {
-					rows: tech.value,
-					class: "bg-amber-500",
-					name: ""
-				}
+				tech.value.class = 'bg-amber-500'
+				slot.technique = tech.value
 			
 			}
 		})
 	})
-	tech.value = [[1]]
+
+	tech.value = {
+		name: "",
+		rows:[[1]],
+		class: ""
+	}
+	
 	editing.value = true
 	style.value = ''
 }
