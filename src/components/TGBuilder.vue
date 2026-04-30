@@ -3,7 +3,8 @@
 		<template v-for="r, rIndex in tech.rows">
 			<template v-for="col, cIndex in r">
 				<TGBlock :class="`row-start-${rIndex+1} col-start-${cIndex+1}`" v-if="col > 0"
-					:style="cellStyle">
+					:style="cellStyle"
+					:aspect="tech.aspect">
 					{{ tech.name }}
 					<TGMinus class="z-50 absolute top-1/5 text-xs w-4 left-1/5 -translate-1/2" v-if="tech.rows.length != 1 || tech.rows[0].length != 1" @click="remove(rIndex, cIndex)" />
 					<TGPlus v-if="!tech.rows[rIndex-1]?.[cIndex]" position="top" @click="add(rIndex-1, cIndex)"/>

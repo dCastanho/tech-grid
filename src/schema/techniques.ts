@@ -1,5 +1,5 @@
 export interface Technique {
 	rows: number[][],
-	class: string,
+	aspect: string | undefined,
 	name: string
 }

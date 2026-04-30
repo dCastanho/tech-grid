@@ -2,6 +2,9 @@
 	<Modal v-model="showChars">
 		<TGCharacterSelection :selected="tech.name" @selected="selectedName" />
 	</Modal>
+	<Modal v-model="showColors">
+		<TGColorSelection v-model="color"/>
+	</Modal>
 	<div class="grid grid-cols-1 md:grid-cols-2 h-full">
 		<div class="flex justify-center items-center">
 			<div ref="grid-container" :style="gridStyle">
@@ -14,7 +17,7 @@
 								flex items-center justify-center text-xl
 								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}`"
 						></div>
-						<TGBlock v-else :style="cellStyle">
+						<TGBlock v-else :style="cellStyle" :aspect="grid[r][c].technique.aspect">
 							{{ grid[r][c].technique.name }}
 						</TGBlock>
 					</template>
@@ -46,7 +49,7 @@
 						<TGButton class="text-xl" type="button" @click="showChars = true">
 							技
 						</TGButton>
-						<TGButton  type="button" @click="cancel">
+						<TGButton  type="button" @click="showColors = true">
 							<Swatch></Swatch>
 						</TGButton>
 					</template>
@@ -67,7 +70,7 @@
 
 <script setup lang="ts">
 
-import { ref, useTemplateRef } from 'vue';
+import { ref, useTemplateRef, watch } from 'vue';
 import TGDraggable from './TGDraggable.vue';
 import TGTechnique from './TGTechnique.vue';
 import TGBuilder from './TGBuilder.vue';
@@ -83,6 +86,9 @@ import Modal from './Modal.vue';
 import TGCharacterSelection from './TGCharacterSelection.vue';
 import { Technique } from '../schema/techniques';
 import TGBlock from './TGBlock.vue';
+import TGColorSelection from './TGColorSelection.vue';
+
+const DEFAULT_ASPECT = "background: blue"
 
 const gridStyle = {
 	display: 'grid',
@@ -91,16 +97,24 @@ const gridStyle = {
 	gap: `${GAP}px`,
 }
 
+
+const color = ref()
+
 const cellStyle = {
 	width: `${CELL_SIZE}px`,
 	height: `${CELL_SIZE}px`,
 }
 
+watch(color, (nC) => {
+	tech.value.aspect = `background: hsl(${nC.hue},${nC.saturation}%,${nC.brightness}%)`	
+})
+
 const showChars = ref(false)
+const showColors = ref(false)
 const tech = ref<Technique>({
 	name: "",
 	rows:[[1]],
-	class: ""
+	aspect: DEFAULT_ASPECT
 })
 
 const editing = ref(true)
@@ -124,7 +138,7 @@ function save() {
 	// future mutations to `tech` cannot bleed into already-placed tiles.
 	const snapshot: Technique = {
 		name: tech.value.name,
-		class: 'bg-amber-500',
+		aspect: tech.value.aspect,
 		rows: tech.value.rows.map(r => [...r]),
 	}
 
@@ -136,7 +150,7 @@ function save() {
 		})
 	})
 
-	tech.value = { name: "", rows: [[1]], class: "" }
+	tech.value = { name: "", rows: [[1]], aspect: DEFAULT_ASPECT }
 	editing.value = true
 	style.value = ''
 }
