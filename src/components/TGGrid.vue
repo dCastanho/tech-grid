@@ -25,21 +25,24 @@
 			</div>	
 		</div>
 		<div class="flex items-center justify-center px-16">
-				<div class="grow flex items-center justify-center">
-					<TGBuilder v-if="editing" v-model="tech"></TGBuilder>
-					<TGDraggable
-					v-model="style"
-					v-else
-					:shape="tech.rows"
-					:grid="grid"
-					:grid-container="gridContainer"
-					@placed="onPlaced"
-					@highlighted="onHighlighted"
-					>
+				<div class="grow h-96 flex flex-col items-center justify-start">
+					<input type="text" placeholder="Technique Name" v-model="fullname" class="text-center text-white"/>
+					<div class="grow flex items-center justify-center">
+						<TGBuilder v-if="editing" v-model="tech"></TGBuilder>
+						<TGDraggable
+						v-model="style"
+						v-else
+						:shape="tech.rows"
+						:grid="grid"
+						:grid-container="gridContainer"
+						@placed="onPlaced"
+						@highlighted="onHighlighted"
+						>
 						<TGTechnique
 						:tech="tech"
 						></TGTechnique>
 					</TGDraggable> 
+				</div>
 				</div>
 				<div class="w-32 flex flex-col gap-4 ">
 					<template v-if="editing">
@@ -97,6 +100,8 @@ const gridStyle = {
 	gap: `${GAP}px`,
 }
 
+const fullname = ref('')
+
 
 const color = ref()
 
@@ -105,6 +110,7 @@ const cellStyle = {
 	height: `${CELL_SIZE}px`,
 }
 
+watch(fullname, (nN) => tech.value.fullname = nN)
 watch(color, (nC) => {
 	tech.value.aspect = `background: hsl(${nC.hue},${nC.saturation}%,${nC.brightness}%)`	
 })
@@ -114,7 +120,8 @@ const showColors = ref(false)
 const tech = ref<Technique>({
 	name: "",
 	rows:[[1]],
-	aspect: DEFAULT_ASPECT
+	aspect: DEFAULT_ASPECT,
+	fullname: ""
 })
 
 const editing = ref(true)
@@ -138,6 +145,7 @@ function save() {
 	// future mutations to `tech` cannot bleed into already-placed tiles.
 	const snapshot: Technique = {
 		name: tech.value.name,
+		fullname: tech.value.fullname,
 		aspect: tech.value.aspect,
 		rows: tech.value.rows.map(r => [...r]),
 	}
@@ -150,8 +158,9 @@ function save() {
 		})
 	})
 
-	tech.value = { name: "", rows: [[1]], aspect: DEFAULT_ASPECT }
+	tech.value = { name: "", rows: [[1]], aspect: DEFAULT_ASPECT, fullname: ""}
 	editing.value = true
+	fullname.value = ''
 	style.value = ''
 }
 
