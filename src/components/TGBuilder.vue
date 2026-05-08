@@ -7,7 +7,7 @@
 					:aspect="tech.aspect"
 					:text-aspect="tech.textAspect">
 					{{ tech.name }}
-					<div class="w-full h-full absolute z-30 top-0 left-0 opacity-0 transition-opacity hover:opacity-100 bg-gray-900/80">
+					<div class="w-full h-full absolute z-30 top-0 left-0 opacity-0 text-white transition-opacity hover:opacity-100 bg-gray-900/80">
 						<TGMinus class="z-50 absolute top-1/2 text-xs w-16 left-1/2 -translate-1/2 cursor-pointer" v-if="tech.rows.length != 1 || tech.rows[0].length != 1" @click="remove(rIndex, cIndex)" />
 					</div>
 					<TGPlus v-if="!tech.rows[rIndex-1]?.[cIndex]" position="top" @click="add(rIndex-1, cIndex)"/>
