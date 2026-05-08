@@ -32,13 +32,19 @@ export function useShapeEditor(shape: Ref<Technique>) {
 			if (shape.value.rows[x].every(r => r == 0)) {
 				shape.value.rows.splice(x, 1)
 			}
-		} else if (y == 0 || y == shape.value.rows[0].length - 1) {
+			
+		} 
+		
+		if (y == 0 || y == shape.value.rows[0].length - 1) {
 			const col = shape.value.rows.map(r => r[y])
+			console.log(col)
 			if (col.every(r => r == 0)) {
 				shape.value.rows.forEach(r => r.splice(y, 1))
 			}
 		}
 	}
+
+
 
 	return { add, remove }
 }

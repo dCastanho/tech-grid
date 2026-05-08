@@ -17,7 +17,7 @@
 								flex items-center justify-center text-xl
 								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}`"
 						></div>
-						<TGBlock v-else :style="cellStyle" :aspect="grid[r][c].technique.aspect">
+						<TGBlock v-else :style="cellStyle" :aspect="grid[r][c].technique.aspect" :text-aspect="grid[r][c].technique.textAspect">
 							{{ grid[r][c].technique.name }}
 						</TGBlock>
 					</template>
@@ -89,9 +89,10 @@ import Modal from './Modal.vue';
 import TGCharacterSelection from './TGCharacterSelection.vue';
 import { Technique } from '../schema/techniques';
 import TGBlock from './TGBlock.vue';
-import TGColorSelection from './TGColorSelection.vue';
+import TGColorSelection, { type DualColor } from './TGColorSelection.vue';
 
-const DEFAULT_ASPECT = "background: blue"
+const DEFAULT_ASPECT = "background: hsl(0, 0%, 50%)"
+const DEFAULT_TEXT_ASPECT = "color: hsl(0, 0%, 100%)"
 
 const gridStyle = {
 	display: 'grid',
@@ -103,7 +104,7 @@ const gridStyle = {
 const fullname = ref('')
 
 
-const color = ref()
+const color = ref<DualColor | undefined>()
 
 const cellStyle = {
 	width: `${CELL_SIZE}px`,
@@ -112,15 +113,18 @@ const cellStyle = {
 
 watch(fullname, (nN) => tech.value.fullname = nN)
 watch(color, (nC) => {
-	tech.value.aspect = `background: hsl(${nC.hue},${nC.saturation}%,${nC.brightness}%)`	
+	if (!nC) return
+	tech.value.aspect     = `background: hsl(${nC.background.hue},${nC.background.saturation}%,${nC.background.brightness}%)`
+	tech.value.textAspect = `color: hsl(${nC.text.hue},${nC.text.saturation}%,${nC.text.brightness}%)`
 })
 
 const showChars = ref(false)
 const showColors = ref(false)
 const tech = ref<Technique>({
 	name: "",
-	rows:[[1]],
+	rows: [[1]],
 	aspect: DEFAULT_ASPECT,
+	textAspect: DEFAULT_TEXT_ASPECT,
 	fullname: ""
 })
 
@@ -147,6 +151,7 @@ function save() {
 		name: tech.value.name,
 		fullname: tech.value.fullname,
 		aspect: tech.value.aspect,
+		textAspect: tech.value.textAspect,
 		rows: tech.value.rows.map(r => [...r]),
 	}
 
@@ -158,7 +163,7 @@ function save() {
 		})
 	})
 
-	tech.value = { name: "", rows: [[1]], aspect: DEFAULT_ASPECT, fullname: ""}
+	tech.value = { name: "", rows: [[1]], aspect: DEFAULT_ASPECT, textAspect: DEFAULT_TEXT_ASPECT, fullname: "" }
 	editing.value = true
 	fullname.value = ''
 	style.value = ''
