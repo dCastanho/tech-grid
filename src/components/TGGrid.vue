@@ -6,7 +6,8 @@
 		<TGColorSelection v-model="color"/>
 	</Modal>
 	<div class="grid grid-cols-1 md:grid-cols-2 h-full">
-		<div class="flex justify-center items-center">
+		<div class="flex flex-col gap-y-4 justify-center items-center">
+			<span class="h-8 text-gray-300"> {{hoveredName}} </span>
 			<div ref="grid-container" :style="gridStyle">
 				<template v-for="(_, r) in size" :key="r">
 					<template v-for="(_, c) in size" :key="c">
@@ -17,7 +18,12 @@
 								flex items-center justify-center text-xl
 								${highlightedCells.has(cellKey(r, c)) && !grid[r][c].technique ? 'bg-pink-400' : ''}`"
 						></div>
-						<TGBlock v-else :style="cellStyle" :aspect="grid[r][c].technique.aspect" :text-aspect="grid[r][c].technique.textAspect">
+						<TGBlock v-else 
+								@mouseover=" hoveredName = grid[r][c].technique.fullname"
+								@mouseleave=" hoveredName = ''"
+								:style="cellStyle"
+								:aspect="grid[r][c].technique.aspect"
+								:text-aspect="grid[r][c].technique.textAspect">
 							{{ grid[r][c].technique.name }}
 						</TGBlock>
 					</template>
@@ -94,6 +100,7 @@ import TGColorSelection, { type DualColor } from './TGColorSelection.vue';
 const DEFAULT_ASPECT = "background: hsl(0, 0%, 50%)"
 const DEFAULT_TEXT_ASPECT = "color: hsl(0, 0%, 100%)"
 
+const hoveredName = ref('')
 const gridStyle = {
 	display: 'grid',
 	gridTemplateColumns: `repeat(${size}, ${CELL_SIZE}px)`,
