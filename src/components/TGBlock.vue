@@ -11,12 +11,9 @@
 
 <script setup lang="ts">
 
-
-const props = defineProps({
+defineProps({
 	aspect: String,
 	textAspect: String,
 })
-
-
 
 </script>

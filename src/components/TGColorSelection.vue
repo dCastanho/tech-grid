@@ -42,7 +42,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch, useTemplateRef } from 'vue';
 import { useDrag } from '../composables/useDrag';
-import { Position } from '../schema/position';
 
 export interface Color {
 	hue: number,
